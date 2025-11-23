@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658421118752",
+    "project_id": "trash2cash-app-125b0",
+    "storage_bucket": "trash2cash-app-125b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658421118752:android:4f4de31da4d65383af4945",
+        "android_client_info": {
+          "package_name": "com.example.trash2cash"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHZN1UJfQZS7D7MDh4CsbLRASod73o86I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
