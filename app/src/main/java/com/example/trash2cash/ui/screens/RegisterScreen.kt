@@ -1,10 +1,15 @@
 package com.example.trash2cash.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape // <-- IMPORT INI
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -17,31 +22,117 @@ fun RegisterScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "Registrasi Pengguna", style = MaterialTheme.typography.titleLarge)
-        // ... (Spacer dan TextField untuk Email, Password, Name seperti sebelumnya) ...
-        TextField(value = email, onValueChange = { email = it }, label = { Text("Email") })
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(value = password, onValueChange = { password = it }, label = { Text("Password") })
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(value = name, onValueChange = { name = it }, label = { Text("Nama") })
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            if (email.isNotBlank() && password.isNotBlank() && name.isNotBlank()) {
-                registerUser(email, password, name, context) {
-                    // Ini adalah onSuccess callback! Navigasi ke home.
-                    navController.navigate("home") {
-                        popUpTo("login") { inclusive = true } // Hapus login/register dari back stack
+    val colorStart = Color(0xFF40E0D0) // Biru Muda/Cyan
+    val colorEnd = Color(0xFF3CB371)   // Hijau Daun
+
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(colorStart, colorEnd),
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradientBrush)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Registrasi Pengguna",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // TextField untuk Email dengan bentuk lonjong
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp), // Radius sudut
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent // Jika ada error
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // TextField untuk Password dengan bentuk lonjong
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp), // Radius sudut
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // TextField untuk Nama dengan bentuk lonjong
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nama") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp), // Radius sudut
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (email.isNotBlank() && password.isNotBlank() && name.isNotBlank()) {
+                        registerUser(email, password, name, context) {
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        }
+                    } else {
+                        Toast.makeText(context, "Isi semua field", Toast.LENGTH_SHORT).show()
                     }
-                }
-            } else {
-                Toast.makeText(context, "Isi semua field", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                // Anda juga bisa membulatkan sudut tombol ini
+                shape = RoundedCornerShape(24.dp) // Contoh pembulatan tombol
+            ) {
+                Text("Register")
             }
-        }) {
-            Text("Register")
-        }
-        TextButton(onClick = { navController.popBackStack() }) {
-            Text("Sudah punya akun? Login")
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Sudah punya akun? Login", color = Color.White)
+            }
         }
     }
 }

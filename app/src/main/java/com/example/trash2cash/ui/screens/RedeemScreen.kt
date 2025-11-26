@@ -1,176 +1,110 @@
-// File: com/example/trash2cash/ui/screens/HomeScreen.kt
 package com.example.trash2cash.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.trash2cash.R
-import com.example.trash2cash.logoutUser
-import androidx.compose.material3.ButtonDefaults
-
-// --- DATA STATIS BARU (HISTORY TRANSAKSI) ---
-// Kita buat data class baru untuk item history
-data class WasteHistoryItem(
-    val name: String,
-    val quantity: String,
-    val price: String, // Total harga untuk kuantitas itu
-    val date: String
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+private val monthlyIncomeCategories = listOf(
+    "Organik" to "Rp 50.000,00",
+    "Plastik (Botol PET)" to "Rp 110.000,00",
+    "Kaca" to "Rp 20.250,00",
+    "Logam (Kaleng)" to "Rp 70.500,00"
 )
 
-// Daftar history statis (pura-pura) dengan harga per item yang masuk akal
-private val latestHistory = listOf(
-    WasteHistoryItem("Botol Aqua 750 ml", "10 botol", "+ Rp 1.200", "01 Nov 2025"),
-    WasteHistoryItem("Kaleng Coca-Cola", "5 kaleng", "+ Rp 1.000", "01 Nov 2025"),
-    WasteHistoryItem("Kardus Box Indomie", "2 box", "+ Rp 2.000", "31 Okt 2025"),
-    WasteHistoryItem("Botol Kaca Kecap", "3 botol", "+ Rp 1.050", "30 Okt 2025"),
-    WasteHistoryItem("Botol Aqua 1500 ml", "8 botol", "+ Rp 1.280", "30 Okt 2025"),
-    WasteHistoryItem("Gelas Plastik", "50 gelas", "+ Rp 1.250", "29 Okt 2025")
-)
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController) {
-    val darkGreenColor = Color(0xFF006400)
+fun RedeemScreen(navController: NavController) {
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Gambar Background Logo di Tengah (Watermark)
-        Image(
-            painter = painterResource(id = R.drawable.icon_bank_sampah),
-            contentDescription = "Background Logo",
-            modifier = Modifier.align(Alignment.Center).size(250.dp).alpha(0.1f),
-            contentScale = ContentScale.Fit
-        )
+    // Definisikan warna dan gradasi
+    val colorStart = Color(0xFF40E0D0)
+    val colorEnd = Color(0xFF3CB371)
+    val primaryColor = Color.Black
+    val accentColor = colorEnd
 
-        // Konten Utama
-        Column(
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(colorStart, colorEnd),
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Pendapatan Bulan Ini", color = primaryColor) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tombol Kembali",
+                            tint = primaryColor
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
+                )
+            )
+        }
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(paddingValues)
+                .background(gradientBrush)
         ) {
-
-            // Bagian Log Out (Tetap Sama)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             ) {
                 Text(
-                    text = "Selamat Datang!",
-                    style = MaterialTheme.typography.titleLarge
+                    text = "Total Pendapatan (November 2025):",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = primaryColor
                 )
-                TextButton(onClick = {
-                    logoutUser(navController)
-                }) {
-                    Text("Log Out")
-                }
-            }
+                Text(
+                    text = "Rp 250.750,00",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = accentColor
+                )
 
-            // --- BAGIAN MENU (Tetap Sama) ---
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Menu", style = MaterialTheme.typography.titleMedium)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                // (Tombol Redeem, Lokasi, Panduan Anda tetap sama di sini)
-                // Tombol Redeem
-                Button(
-                    onClick = { navController.navigate("redeem") },
-                    colors = ButtonDefaults.buttonColors(containerColor = darkGreenColor, contentColor = Color.White),
-                    modifier = Modifier.weight(1f).height(100.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_reedem_point),
-                            contentDescription = "Redeem Icon",
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Redeem")
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                // Tombol Lokasi
-                Button(
-                    onClick = { navController.navigate("location") },
-                    colors = ButtonDefaults.buttonColors(containerColor = darkGreenColor, contentColor = Color.White),
-                    modifier = Modifier.weight(1f).height(100.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_lokasi),
-                            contentDescription = "Location Icon",
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Lokasi")
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                // Tombol Panduan
-                Button(
-                    onClick = { navController.navigate("guide") },
-                    colors = ButtonDefaults.buttonColors(containerColor = darkGreenColor, contentColor = Color.White),
-                    modifier = Modifier.weight(1f).height(100.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_panduan),
-                            contentDescription = "Guide Icon",
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Panduan")
-                    }
-                }
-            }
-            // --- -------------------------------------------------- ---
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = primaryColor)
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // --- 👇 "HISTORY TERAKHIR" (BAGIAN BARU) 👇 ---
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "History Terakhir", style = MaterialTheme.typography.titleLarge) // JUDUL BARU
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(latestHistory) { item -> // Gunakan data history
-                    Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                Text(
+                    text = "Rincian Pendapatan Bulan Ini:",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = primaryColor
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(monthlyIncomeCategories) { (category, amount) ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
-                            // Kolom untuk Nama dan Kuantitas
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "${item.quantity} (${item.date})", // Kuantitas + Tanggal
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray
-                                )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = category, style = MaterialTheme.typography.bodyLarge, color = primaryColor)
+                                Text(text = amount, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = accentColor)
                             }
-                            // Kolom untuk Harga
-                            Text(
-                                text = item.price, // Harga
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = darkGreenColor, // Warna hijau
-                                fontWeight = FontWeight.Bold
-                            )
                         }
                     }
                 }
