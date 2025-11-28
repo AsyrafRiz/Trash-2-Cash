@@ -5,6 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,6 +16,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.trash2cash.R
@@ -22,6 +27,7 @@ import com.example.trash2cash.loginUser
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val colorStart = Color(0xFF40E0D0)
     val colorEnd = Color(0xFF3CB371)
@@ -64,6 +70,8 @@ fun LoginScreen(navController: NavController) {
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
             )
 
@@ -75,10 +83,25 @@ fun LoginScreen(navController: NavController) {
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        Icons.Filled.Visibility
+                    else
+                        Icons.Filled.VisibilityOff
+
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+
+                    IconButton(onClick = {passwordVisible = !passwordVisible}){
+                        Icon(imageVector  = image, description)
+                    }
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
             )
 
