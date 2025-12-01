@@ -1,6 +1,6 @@
 package com.example.trash2cash.ui.screens
 
-import android.widget.Toast
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,6 +29,9 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
     val colorStart = Color(0xFF40E0D0)
     val colorEnd = Color(0xFF3CB371)
     val gradientBrush = Brush.linearGradient(
@@ -62,10 +65,22 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    emailError = null
+                },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
+                isError = emailError != null,
+                supportingText = {
+                    emailError?.let {
+                        Text(
+                            text = it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -79,10 +94,22 @@ fun LoginScreen(navController: NavController) {
 
             TextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it 
+                    passwordError = null
+                },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
+                isError = passwordError != null,
+                supportingText = {
+                    passwordError?.let {
+                        Text(
+                            text = it,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val image = if (passwordVisible)
@@ -108,14 +135,29 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    if (email.isNotBlank() && password.isNotBlank()) {
+                    var hasError = false
+                    if (email.isBlank()) {
+                        emailError = "Email tidak boleh kosong"
+                        hasError = true
+                    } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = "Format email tidak valid"
+                        hasError = true
+                    }
+
+                    if (password.isBlank()) {
+                        passwordError = "Password tidak boleh kosong"
+                        hasError = true
+                    } else if (password.length < 6) {
+                        passwordError = "Password minimal 6 karakter"
+                        hasError = true
+                    }
+
+                    if (!hasError) {
                         loginUser(email, password, context) {
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
                         }
-                    } else {
-                        Toast.makeText(context, "Isi semua field", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
