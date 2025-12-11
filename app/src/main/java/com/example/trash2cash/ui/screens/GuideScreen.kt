@@ -24,28 +24,22 @@ private val sortingGuideList = listOf(
 @Composable
 fun GuideScreen(navController: NavController) {
 
-    // Definisikan warna untuk gradasi
-    val colorStart = Color(0xFF40E0D0) // Biru Muda/Cyan
-    val colorEnd = Color(0xFF3CB371)   // Hijau Daun
-    val darkTextColor = Color(0xFF1E5128) // Hijau Tua untuk kontras pada Card
-
-    // Buat Brush untuk gradasi linear
+    val colorStart = Color(0xFF40E0D0)
+    val colorEnd = Color(0xFF3CB371)
+    val darkTextColor = Color(0xFF1E5128)
     val gradientBrush = Brush.linearGradient(
         colors = listOf(colorStart, colorEnd),
     )
-
-    // PERUBAHAN UTAMA: Box untuk menerapkan gradasi
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(gradientBrush) // Menerapkan gradasi
+            .background(gradientBrush)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Judul diubah menjadi Putih agar terlihat jelas
             Text(
                 text = "Panduan Pemilahan Sampah",
                 style = MaterialTheme.typography.titleLarge,
@@ -56,18 +50,15 @@ fun GuideScreen(navController: NavController) {
                 items(sortingGuideList) { (title, description) ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        // Card diatur agar memiliki latar belakang Putih solid
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            // Judul Card menggunakan warna gelap
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = darkTextColor
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            // Deskripsi Card menggunakan warna gelap
                             Text(
                                 text = description,
                                 style = MaterialTheme.typography.bodyMedium,

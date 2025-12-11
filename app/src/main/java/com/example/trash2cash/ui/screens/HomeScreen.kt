@@ -1,5 +1,3 @@
-@file:JvmName("HomeScreenKt")
-
 package com.example.trash2cash.ui.screens
 
 import androidx.compose.foundation.Image
@@ -57,11 +55,10 @@ fun HomeScreen(navController: NavController) {
             .fillMaxSize()
             .background(gradientBrush)
     ) {
-        // Logo Latar Belakang (Contoh diperbesar dari 250.dp menjadi 350.dp)
         Image(
             painter = painterResource(id = R.drawable.icon_bank_sampah),
             contentDescription = "Background Logo",
-            modifier = Modifier.align(Alignment.Center).size(350.dp).alpha(0.1f), // Perubahan ukuran logo
+            modifier = Modifier.align(Alignment.Center).size(350.dp).alpha(0.1f),
             contentScale = ContentScale.Fit
         )
 
@@ -70,7 +67,6 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -89,73 +85,81 @@ fun HomeScreen(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Menu
             Text(text = "Menu", style = MaterialTheme.typography.titleMedium, color = textColorOnGradient)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                // Tombol 1: Redeem
                 Button(
                     onClick = { navController.navigate("redeem") },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp) // Perubahan tinggi tombol
+                    modifier = Modifier.weight(1f).height(110.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_reedem_point),
                             contentDescription = "Redeem Icon",
-                            modifier = Modifier.size(50.dp), // Perubahan ukuran ikon
+                            modifier = Modifier.size(50.dp),
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Redeem")
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-
-                // Tombol 2: Lokasi
                 Button(
                     onClick = { navController.navigate("location") },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp) // Perubahan tinggi tombol
+                    modifier = Modifier.weight(1f).height(110.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_lokasi),
                             contentDescription = "Location Icon",
-                            modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
+                            modifier = Modifier.size(50.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Lokasi")
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-
-                // Tombol 3: Panduan
                 Button(
                     onClick = { navController.navigate("guide") },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp) // Perubahan tinggi tombol
+                    modifier = Modifier.weight(1f).height(110.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Image(
                             painter = painterResource(id = R.drawable.icon_panduan),
                             contentDescription = "Guide Icon",
-                            modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
+                            modifier = Modifier.size(50.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Panduan")
                     }
                 }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { navController.navigate("scan") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(110.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Image(
+                            painter = painterResource(id = R.drawable.icon_scan),
+                            contentDescription = "Scan Icon",
+                            modifier = Modifier.size(50.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Scan")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // History
             Text(text = "History Terakhir", style = MaterialTheme.typography.titleLarge, color = textColorOnGradient)
             Spacer(modifier = Modifier.height(8.dp))
 
