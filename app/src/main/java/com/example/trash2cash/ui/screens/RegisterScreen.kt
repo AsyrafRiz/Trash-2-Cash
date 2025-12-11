@@ -22,8 +22,8 @@ fun RegisterScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-    val colorStart = Color(0xFF40E0D0) // Biru Muda/Cyan
-    val colorEnd = Color(0xFF3CB371)   // Hijau Daun
+    val colorStart = Color(0xFF40E0D0)
+    val colorEnd = Color(0xFF3CB371)
 
     val gradientBrush = Brush.linearGradient(
         colors = listOf(colorStart, colorEnd),
@@ -48,33 +48,12 @@ fun RegisterScreen(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // TextField untuk Email dengan bentuk lonjong
             TextField(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp), // Radius sudut
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    disabledContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent // Jika ada error
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // TextField untuk Password dengan bentuk lonjong
-            TextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp), // Radius sudut
+                shape = RoundedCornerShape(24.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -86,14 +65,29 @@ fun RegisterScreen(navController: NavController) {
             )
 
             Spacer(modifier = Modifier.height(8.dp))
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                )
+            )
 
-            // TextField untuk Nama dengan bentuk lonjong
+            Spacer(modifier = Modifier.height(8.dp))
             TextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nama") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp), // Radius sudut
+                shape = RoundedCornerShape(24.dp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -119,8 +113,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                // Anda juga bisa membulatkan sudut tombol ini
-                shape = RoundedCornerShape(24.dp) // Contoh pembulatan tombol
+                shape = RoundedCornerShape(24.dp)
             ) {
                 Text("Register")
             }
