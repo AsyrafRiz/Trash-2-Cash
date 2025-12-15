@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.trash2cash.ui.screens.*
 import com.example.trash2cash.utils.createNotificationChannel
-import com.example.trash2cash.utils.createNotificationChannel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 

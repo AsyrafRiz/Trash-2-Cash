@@ -1,3 +1,5 @@
+@file:JvmName("HomeScreenKt")
+
 package com.example.trash2cash.ui.screens
 
 import androidx.compose.foundation.Image
@@ -55,6 +57,7 @@ fun HomeScreen(navController: NavController) {
             .fillMaxSize()
             .background(gradientBrush)
     ) {
+        // Logo Latar Belakang
         Image(
             painter = painterResource(id = R.drawable.icon_bank_sampah),
             contentDescription = "Background Logo",
@@ -67,6 +70,9 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(24.dp)) // Menambahkan jarak di atas
+
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -84,83 +90,25 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Menu
             Text(text = "Menu", style = MaterialTheme.typography.titleMedium, color = textColorOnGradient)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.spacedBy(8.dp) // Mengatur jarak antar tombol
             ) {
-                Button(
-                    onClick = { navController.navigate("redeem") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_reedem_point),
-                            contentDescription = "Redeem Icon",
-                            modifier = Modifier.size(50.dp),
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Redeem")
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { navController.navigate("location") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_lokasi),
-                            contentDescription = "Location Icon",
-                            modifier = Modifier.size(50.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Lokasi")
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { navController.navigate("guide") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_panduan),
-                            contentDescription = "Guide Icon",
-                            modifier = Modifier.size(50.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Panduan")
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = { navController.navigate("scan") },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.weight(1f).height(110.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Image(
-                            painter = painterResource(id = R.drawable.icon_scan),
-                            contentDescription = "Scan Icon",
-                            modifier = Modifier.size(50.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("Scan")
-                    }
-                }
+                MenuButton(navController = navController, route = "redeem", iconRes = R.drawable.icon_reedem_point, text = "Redeem")
+                MenuButton(navController = navController, route = "location", iconRes = R.drawable.icon_lokasi, text = "Lokasi")
+                MenuButton(navController = navController, route = "guide", iconRes = R.drawable.icon_panduan, text = "Panduan")
+                MenuButton(navController = navController, route = "scan", iconRes = R.drawable.icon_scan, text = "Scan")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "History Terakhir", style = MaterialTheme.typography.titleLarge, color = textColorOnGradient)
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // History
+            Text(text = "History Terakhir", style = MaterialTheme.typography.titleMedium, color = textColorOnGradient)
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(modifier = Modifier.weight(1f)) {
@@ -196,6 +144,35 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun RowScope.MenuButton(
+    navController: NavController,
+    route: String,
+    iconRes: Int,
+    text: String
+) {
+    Button(
+        onClick = { navController.navigate(route) },
+        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.weight(1f).height(110.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = "$text Icon",
+                modifier = Modifier.size(50.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text)
         }
     }
 }
