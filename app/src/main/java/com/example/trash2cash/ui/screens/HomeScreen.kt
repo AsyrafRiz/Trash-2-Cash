@@ -70,7 +70,6 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -93,7 +92,6 @@ fun HomeScreen(navController: NavController) {
 
             // Menu
             Text(text = "Menu", style = MaterialTheme.typography.titleMedium, color = textColorOnGradient)
-            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -111,7 +109,7 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Redeem Icon",
                             modifier = Modifier.size(50.dp), // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text("Redeem")
                     }
                 }
@@ -130,7 +128,7 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Location Icon",
                             modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text("Lokasi")
                     }
                 }
@@ -149,8 +147,25 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Guide Icon",
                             modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text("Panduan")
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = { navController.navigate("scan") },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color.Black),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f).height(110.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Image(
+                            painter = painterResource(id = R.drawable.icon_scan),
+                            contentDescription = "Scan Icon",
+                            modifier = Modifier.size(50.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Scan")
                     }
                 }
             }

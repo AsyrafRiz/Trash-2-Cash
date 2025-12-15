@@ -1,13 +1,9 @@
 package com.example.trash2cash.ui.screens
 
-import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.shape.RoundedCornerShape // <-- IMPORT INI
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,22 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.trash2cash.registerUser
 
 @Composable
 fun RegisterScreen(navController: NavController) {
-    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
     val context = LocalContext.current
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var emailError by remember { mutableStateOf<String?>(null) }
-    var passwordError by remember { mutableStateOf<String?>(null) }
 
     val colorStart = Color(0xFF40E0D0) // Biru Muda/Cyan
     val colorEnd = Color(0xFF3CB371)   // Hijau Daun
@@ -47,7 +37,7 @@ fun RegisterScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(32.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -59,54 +49,32 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            TextField(
-                value = name,
-                onValueChange = { 
-                    name = it
-                    nameError = null
-                },
-                label = { Text("Nama") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                isError = nameError != null,
-                supportingText = {
-                    nameError?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    disabledContainerColor = Color.White,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
+            // TextField untuk Email dengan bentuk lonjong
             TextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                    emailError = null
-                },
+                onValueChange = { email = it },
                 label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                isError = emailError != null,
-                supportingText = {
-                    emailError?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
+                shape = RoundedCornerShape(24.dp), // Radius sudut
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    disabledContainerColor = Color.White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent // Jika ada error
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // TextField untuk Password dengan bentuk lonjong
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp), // Radius sudut
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -119,35 +87,13 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // TextField untuk Nama dengan bentuk lonjong
             TextField(
-                value = password,
-                onValueChange = {
-                    password = it
-                    passwordError = null
-                },
-                label = { Text("Password") },
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nama") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                isError = passwordError != null,
-                supportingText = {
-                    passwordError?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Filled.Visibility
-                    else
-                        Icons.Filled.VisibilityOff
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, description)
-                    }
-                },
+                shape = RoundedCornerShape(24.dp), // Radius sudut
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
@@ -162,38 +108,19 @@ fun RegisterScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    var hasError = false
-                    if (name.isBlank()) {
-                        nameError = "Nama tidak boleh kosong"
-                        hasError = true
-                    }
-
-                    if (email.isBlank()) {
-                        emailError = "Email tidak boleh kosong"
-                        hasError = true
-                    } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        emailError = "Format email tidak valid"
-                        hasError = true
-                    }
-
-                    if (password.isBlank()) {
-                        passwordError = "Password tidak boleh kosong"
-                        hasError = true
-                    } else if (password.length < 6) {
-                        passwordError = "Password minimal 6 karakter"
-                        hasError = true
-                    }
-
-                    if (!hasError) {
+                    if (email.isNotBlank() && password.isNotBlank() && name.isNotBlank()) {
                         registerUser(email, password, name, context) {
-                            Toast.makeText(context, "Akun berhasil dibuat!", Toast.LENGTH_SHORT).show()
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
                         }
+                    } else {
+                        Toast.makeText(context, "Isi semua field", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                // Anda juga bisa membulatkan sudut tombol ini
+                shape = RoundedCornerShape(24.dp) // Contoh pembulatan tombol
             ) {
                 Text("Register")
             }

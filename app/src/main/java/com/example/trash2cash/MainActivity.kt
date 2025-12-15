@@ -46,6 +46,10 @@ class MainActivity : ComponentActivity() {
                     composable("guide") {
                         GuideScreen(navController)
                     }
+
+                    composable("scan") {
+                        ScanScreen(navController)
+                    }
                 }
             }
         }
