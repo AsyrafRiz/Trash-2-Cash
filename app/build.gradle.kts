@@ -40,9 +40,19 @@ android {
 }
 
 dependencies {
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-wms:6.1.18")
+    implementation("org.osmdroid:osmdroid-mapsforge:6.1.18")
+    implementation("org.osmdroid:osmdroid-geopackage:6.1.18") {
+        exclude(group = "com.j256.ormlite", module = "ormlite-core")
+    }
     implementation("androidx.compose.material:material-icons-extended:1.5.3")
-    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
-    implementation("com.google.firebase:firebase-database-ktx:21.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation(platform(libs.androidx.compose.bom))

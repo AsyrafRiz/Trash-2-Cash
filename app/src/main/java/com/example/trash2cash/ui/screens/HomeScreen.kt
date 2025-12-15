@@ -70,6 +70,7 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -92,6 +93,7 @@ fun HomeScreen(navController: NavController) {
 
             // Menu
             Text(text = "Menu", style = MaterialTheme.typography.titleMedium, color = textColorOnGradient)
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -109,7 +111,7 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Redeem Icon",
                             modifier = Modifier.size(50.dp), // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Redeem")
                     }
                 }
@@ -128,7 +130,7 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Location Icon",
                             modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Lokasi")
                     }
                 }
@@ -147,7 +149,7 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Guide Icon",
                             modifier = Modifier.size(50.dp) // Perubahan ukuran ikon
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text("Panduan")
                     }
                 }
