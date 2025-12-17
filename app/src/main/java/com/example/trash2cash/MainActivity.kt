@@ -36,9 +36,9 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         HomeScreen(navController)
                     }
-                    composable("redeem") {
-                        RedeemScreen(navController)
-                    }
+//                    composable("redeem") {
+//                        RedeemScreen(navController)
+//                    }
                     composable("location") {
                         LocationScreen(navController)
                     }

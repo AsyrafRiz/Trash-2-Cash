@@ -13,13 +13,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.trash2cash.R
+import com.example.trash2cash.ScanHistory
 import com.example.trash2cash.logoutUser
-import com.example.trash2cash.Transaction
-import com.example.trash2cash.loadTransactions
-import com.google.firebase.auth.FirebaseAuth
 import com.example.trash2cash.ui.components.MenuButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.* 
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -27,43 +33,6 @@ fun HomeScreen(navController: NavController) {
     val gradientBrush = Brush.linearGradient(
         colors = listOf(Color(0xFF40E0D0), Color(0xFF3CB371))
     )
-
-    val auth = FirebaseAuth.getInstance()
-    var userId by rememberSaveable { mutableStateOf<String?>(null) }
-    var history by remember { mutableStateOf<List<Transaction>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        userId = auth.currentUser?.uid
-    }
-
-    val refreshState =
-        navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.getStateFlow("refresh_history", false)
-            ?.collectAsState()
-
-    fun loadHistory() {
-        userId?.let {
-            loadTransactions(it) { result ->
-                history = result
-            }
-        }
-    }
-
-    // Pertama kali masuk Home
-    LaunchedEffect(Unit) {
-        loadHistory()
-    }
-
-    // Saat kembali dari Redeem
-    LaunchedEffect(refreshState?.value) {
-        if (refreshState?.value == true) {
-            loadHistory()
-            navController.currentBackStackEntry
-                ?.savedStateHandle
-                ?.set("refresh_history", false)
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -94,6 +63,11 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
+            Spacer(Modifier.height(16.dp))
+            
+            // Total Cash Display
+            TotalCashDisplay()
+
             Spacer(Modifier.height(24.dp))
 
             // Menu
@@ -104,7 +78,6 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MenuButton(navController, "redeem", R.drawable.icon_reedem_point, "Redeem")
                 MenuButton(navController, "location", R.drawable.icon_lokasi, "Lokasi")
                 MenuButton(navController, "guide", R.drawable.icon_panduan, "Panduan")
                 MenuButton(navController, "scan", R.drawable.icon_scan, "Scan")
@@ -121,51 +94,110 @@ fun HomeScreen(navController: NavController) {
 
             Spacer(Modifier.height(8.dp))
 
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                if (history.isEmpty()) {
-                    item {
-                        Text(
-                            text = "Belum ada transaksi.",
-                            color = Color.White
-                        )
-                    }
-                } else {
-                    items(history) { item ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column {
-                                    Text(
-                                        text = item.wasteType,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "Jumlah: ${item.quantity} ${item.unit}",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                                Text(
-                                    text = "+ ${item.pointsEarned} poin",
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF3CB371)
-                                )
-                            }
+            HistoryList()
+        }
+    }
+}
+
+@Composable
+fun TotalCashDisplay() {
+    var totalCash by remember { mutableStateOf(0L) }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+    if (uid != null) {
+        val db = Firebase.firestore
+        val userDocRef = db.collection("users").document(uid)
+
+        // Menggunakan SnapshotListener untuk update real-time
+        DisposableEffect(uid) {
+            val listener = userDocRef.addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    // Handle error
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    totalCash = snapshot.getLong("totalCash") ?: 0L
+                }
+            }
+            onDispose {
+                listener.remove() // Hentikan listener saat Composable dihancurkan
+            }
+        }
+    }
+
+    val formattedCash = NumberFormat.getCurrencyInstance(Locale("id", "ID")).format(totalCash)
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Total Cash Anda", color = Color.White, fontSize = 16.sp)
+            Text(formattedCash, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun HistoryList() {
+    var history by remember { mutableStateOf<List<ScanHistory>>(emptyList()) }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+    if (uid != null) {
+        val db = Firebase.firestore
+        val historyCollectionRef = db.collection("users").document(uid).collection("history")
+
+        DisposableEffect(uid) {
+            val listener = historyCollectionRef.orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(10)
+                .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    history = snapshot.toObjects(ScanHistory::class.java)
+                }
+            }
+            onDispose {
+                listener.remove()
+            }
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        if (history.isEmpty()) {
+            item {
+                Text("Belum ada riwayat transaksi.", color = Color.White)
+            }
+        } else {
+            items(history) { item ->
+                val formattedAmount = NumberFormat.getCurrencyInstance(Locale("id", "ID")).format(item.amount)
+                val formattedDate = item.timestamp?.let { 
+                    SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(it) 
+                } ?: ""
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(item.jenisSampah, fontWeight = FontWeight.Bold)
+                            Text(formattedDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                         }
+                        Text(formattedAmount, fontWeight = FontWeight.Bold, color = Color(0xFF3CB371))
                     }
                 }
             }

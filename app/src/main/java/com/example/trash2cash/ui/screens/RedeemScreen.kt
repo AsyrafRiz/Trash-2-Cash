@@ -1,17 +1,20 @@
 package com.example.trash2cash.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
 import com.example.trash2cash.Transaction
 import com.example.trash2cash.saveTransaction
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,19 +23,21 @@ fun RedeemScreen(navController: NavController) {
     val context = LocalContext.current
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
+    // Gunakan Long untuk poin agar tidak overflow
     val wasteTypes = listOf(
-        "Organik" to 1000,
-        "Plastik" to 2000,
-        "Kaca" to 20000,
-        "Logam" to 40000
+        "Organik" to 1000L,
+        "Plastik" to 2000L,
+        "Kaca" to 20000L,
+        "Logam" to 40000L
     )
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedWaste by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    var selectedWaste by remember { mutableStateOf<Pair<String, Long>?>(null) }
     var quantity by remember { mutableStateOf("") }
+    var quantityError by remember { mutableStateOf<String?>(null) }
 
-    val totalPoints =
-        selectedWaste?.second?.times(quantity.toIntOrNull() ?: 0) ?: 0
+    // Hitung total poin menggunakan Long
+    val totalPoints: Long = selectedWaste?.second?.times(quantity.toLongOrNull() ?: 0L) ?: 0L
 
     Scaffold(
         topBar = {
@@ -40,7 +45,7 @@ fun RedeemScreen(navController: NavController) {
                 title = { Text("Proses Sampah") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -67,18 +72,19 @@ fun RedeemScreen(navController: NavController) {
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    colors = ExposedDropdownMenuDefaults.textFieldColors()
                 )
 
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    wasteTypes.forEach {
+                    wasteTypes.forEach { item ->
                         DropdownMenuItem(
-                            text = { Text(it.first) },
+                            text = { Text(item.first) },
                             onClick = {
-                                selectedWaste = it
+                                selectedWaste = item
                                 expanded = false
                             }
                         )
@@ -90,9 +96,19 @@ fun RedeemScreen(navController: NavController) {
 
             TextField(
                 value = quantity,
-                onValueChange = { quantity = it },
+                onValueChange = { 
+                    quantity = it.filter { char -> char.isDigit() } // Hanya izinkan angka
+                    quantityError = null 
+                },
                 label = { Text("Jumlah Sampah") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = quantityError != null,
+                supportingText = {
+                    if (quantityError != null) {
+                        Text(quantityError!!)
+                    }
+                }
             )
 
             Spacer(Modifier.height(16.dp))
@@ -108,21 +124,26 @@ fun RedeemScreen(navController: NavController) {
                 enabled = selectedWaste != null && quantity.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
+                    val currentQuantity = quantity.toDoubleOrNull()
+                    if (currentQuantity == null || currentQuantity <= 0) {
+                        quantityError = "Jumlah harus lebih dari 0"
+                        return@Button
+                    }
+                    
+                    if (totalPoints > Int.MAX_VALUE) {
+                        Toast.makeText(context, "Jumlah poin yang dimasukkan terlalu besar!", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
                     val transaction = Transaction(
                         wasteType = selectedWaste!!.first,
-                        quantity = quantity.toDouble(),
+                        quantity = currentQuantity,
                         unit = "unit",
-                        pointsEarned = totalPoints
+                        pointsEarned = totalPoints.toInt()
                     )
 
-                    // SIMPAN KE FIREBASE
                     saveTransaction(userId, transaction, context)
-
-                    // LANGSUNG KEMBALI KE HOME
-                    navController.navigate("home") {
-                        popUpTo("home") { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.popBackStack()
                 }
             ) {
                 Text("Simpan Transaksi")
