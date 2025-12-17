@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -25,7 +24,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.* 
+import java.util.*
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -64,7 +63,7 @@ fun HomeScreen(navController: NavController) {
             }
 
             Spacer(Modifier.height(16.dp))
-            
+
             // Total Cash Display
             TotalCashDisplay()
 
@@ -108,11 +107,9 @@ fun TotalCashDisplay() {
         val db = Firebase.firestore
         val userDocRef = db.collection("users").document(uid)
 
-        // Menggunakan SnapshotListener untuk update real-time
         DisposableEffect(uid) {
             val listener = userDocRef.addSnapshotListener { snapshot, e ->
                 if (e != null) {
-                    // Handle error
                     return@addSnapshotListener
                 }
 
@@ -121,7 +118,7 @@ fun TotalCashDisplay() {
                 }
             }
             onDispose {
-                listener.remove() // Hentikan listener saat Composable dihancurkan
+                listener.remove()
             }
         }
     }
@@ -152,13 +149,13 @@ fun HistoryList() {
             val listener = historyCollectionRef.orderBy("timestamp", Query.Direction.DESCENDING)
                 .limit(10)
                 .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    return@addSnapshotListener
+                    if (e != null) {
+                        return@addSnapshotListener
+                    }
+                    if (snapshot != null) {
+                        history = snapshot.toObjects(ScanHistory::class.java)
+                    }
                 }
-                if (snapshot != null) {
-                    history = snapshot.toObjects(ScanHistory::class.java)
-                }
-            }
             onDispose {
                 listener.remove()
             }
@@ -175,9 +172,10 @@ fun HistoryList() {
             }
         } else {
             items(history) { item ->
-                val formattedAmount = NumberFormat.getCurrencyInstance(Locale("id", "ID")).format(item.amount)
-                val formattedDate = item.timestamp?.let { 
-                    SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(it) 
+                val formattedAmount =
+                    NumberFormat.getCurrencyInstance(Locale("id", "ID")).format(item.amount)
+                val formattedDate = item.timestamp?.let {
+                    SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(it)
                 } ?: ""
 
                 Card(
@@ -195,9 +193,17 @@ fun HistoryList() {
                     ) {
                         Column {
                             Text(item.jenisSampah, fontWeight = FontWeight.Bold)
-                            Text(formattedDate, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                            Text(
+                                formattedDate,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.Gray
+                            )
                         }
-                        Text(formattedAmount, fontWeight = FontWeight.Bold, color = Color(0xFF3CB371))
+                        Text(
+                            formattedAmount,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF3CB371)
+                        )
                     }
                 }
             }

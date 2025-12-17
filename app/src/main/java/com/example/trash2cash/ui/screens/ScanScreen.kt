@@ -33,9 +33,6 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
-/* =========================
-   BARCODE ANALYZER
-   ========================= */
 @OptIn(ExperimentalGetImage::class)
 class BarcodeAnalyzer(
     private val onBarcodeDetected: () -> Unit
@@ -84,9 +81,6 @@ class BarcodeAnalyzer(
     }
 }
 
-/* =========================
-   CAMERA START FUNCTION
-   ========================= */
 @OptIn(ExperimentalGetImage::class)
 fun startCamera(
     context: Context,
@@ -129,9 +123,6 @@ fun startCamera(
     }, ContextCompat.getMainExecutor(context))
 }
 
-/* =========================
-   SCAN SCREEN
-   ========================= */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGetImage::class)
 @Composable
 fun ScanScreen(navController: NavController) {
@@ -193,13 +184,11 @@ fun ScanScreen(navController: NavController) {
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView
                 ) {
-                    // Unbind camera to stop scanning
                     ProcessCameraProvider
                         .getInstance(context.applicationContext)
                         .get()
                         .unbindAll()
 
-                    // Handle the successful scan
                     processTrashDeposit(context) {
                         navController.popBackStack()
                     }
