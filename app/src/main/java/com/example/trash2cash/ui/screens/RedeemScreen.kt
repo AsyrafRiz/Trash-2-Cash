@@ -1,113 +1,131 @@
 package com.example.trash2cash.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Brush
-private val monthlyIncomeCategories = listOf(
-    "Organik" to "Rp 50.000,00",
-    "Plastik (Botol PET)" to "Rp 110.000,00",
-    "Kaca" to "Rp 20.250,00",
-    "Logam (Kaleng)" to "Rp 70.500,00"
-)
+import com.google.firebase.auth.FirebaseAuth
+import com.example.trash2cash.Transaction
+import com.example.trash2cash.saveTransaction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RedeemScreen(navController: NavController) {
 
-    // Definisikan warna dan gradasi
-    val colorStart = Color(0xFF40E0D0)
-    val colorEnd = Color(0xFF3CB371)
-    val primaryColor = Color.Black
-    val accentColor = colorEnd
+    val context = LocalContext.current
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-    val gradientBrush = Brush.linearGradient(
-        colors = listOf(colorStart, colorEnd),
+    val wasteTypes = listOf(
+        "Organik" to 1000,
+        "Plastik" to 2000,
+        "Kaca" to 20000,
+        "Logam" to 40000
     )
+
+    var expanded by remember { mutableStateOf(false) }
+    var selectedWaste by remember { mutableStateOf<Pair<String, Int>?>(null) }
+    var quantity by remember { mutableStateOf("") }
+
+    val totalPoints =
+        selectedWaste?.second?.times(quantity.toIntOrNull() ?: 0) ?: 0
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pendapatan Bulan Ini", color = primaryColor) },
+                title = { Text("Proses Sampah") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Tombol Kembali",
-                            tint = primaryColor
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(gradientBrush)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Total Pendapatan (November 2025):",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = primaryColor
-                )
-                Text(
-                    text = "Rp 250.750,00",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = accentColor
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = primaryColor)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Rincian Pendapatan Bulan Ini:",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = primaryColor
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(monthlyIncomeCategories) { (category, amount) ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = category, style = MaterialTheme.typography.bodyLarge, color = primaryColor)
-                                Text(text = amount, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = accentColor)
-                            }
-                        }
+                        Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
                 }
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+        ) {
+
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                TextField(
+                    value = selectedWaste?.first ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Jenis Sampah") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    wasteTypes.forEach {
+                        DropdownMenuItem(
+                            text = { Text(it.first) },
+                            onClick = {
+                                selectedWaste = it
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            TextField(
+                value = quantity,
+                onValueChange = { quantity = it },
+                label = { Text("Jumlah Sampah") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "Total Poin: $totalPoints",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                enabled = selectedWaste != null && quantity.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    val transaction = Transaction(
+                        wasteType = selectedWaste!!.first,
+                        quantity = quantity.toDouble(),
+                        unit = "unit",
+                        pointsEarned = totalPoints
+                    )
+
+                    // SIMPAN KE FIREBASE
+                    saveTransaction(userId, transaction, context)
+
+                    // LANGSUNG KEMBALI KE HOME
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            ) {
+                Text("Simpan Transaksi")
             }
         }
     }

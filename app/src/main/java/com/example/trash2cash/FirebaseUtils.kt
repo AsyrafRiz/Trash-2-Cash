@@ -2,25 +2,43 @@ package com.example.trash2cash
 
 import android.content.Context
 import android.widget.Toast
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import androidx.navigation.NavController
 
+/* ===================== AUTH ===================== */
 
-fun loginUser(email: String, password: String, context: Context, onSuccess: () -> Unit) {
-    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+fun loginUser(
+    email: String,
+    password: String,
+    context: Context,
+    onSuccess: () -> Unit
+) {
+    FirebaseAuth.getInstance()
+        .signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Toast.makeText(context, "Login Berhasil", Toast.LENGTH_SHORT).show()
                 onSuccess()
             } else {
-                Toast.makeText(context, "Login Gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Login Gagal: ${task.exception?.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 }
 
-fun registerUser(email: String, password: String, name: String, context: Context, onSuccess: () -> Unit) {
-    FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+fun registerUser(
+    email: String,
+    password: String,
+    name: String,
+    context: Context,
+    onSuccess: () -> Unit
+) {
+    FirebaseAuth.getInstance()
+        .createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -28,14 +46,34 @@ fun registerUser(email: String, password: String, name: String, context: Context
                     saveUserData(userId, name, email, context, onSuccess)
                 }
             } else {
-                Toast.makeText(context, "Registrasi Gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Registrasi Gagal: ${task.exception?.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 }
 
-fun saveUserData(userId: String, name: String, email: String, context: Context, onSuccess: () -> Unit) {
-    val user = User(userId = userId, name = name, email = email, points = 0L)
-    FirebaseDatabase.getInstance().reference.child("users").child(userId).setValue(user)
+fun saveUserData(
+    userId: String,
+    name: String,
+    email: String,
+    context: Context,
+    onSuccess: () -> Unit
+) {
+    val user = User(
+        userId = userId,
+        name = name,
+        email = email,
+        points = 0L
+    )
+
+    FirebaseDatabase.getInstance()
+        .reference
+        .child("users")
+        .child(userId)
+        .setValue(user)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Toast.makeText(context, "User Data Saved", Toast.LENGTH_SHORT).show()
@@ -46,64 +84,105 @@ fun saveUserData(userId: String, name: String, email: String, context: Context, 
         }
 }
 
+/* ===================== REDEEM ===================== */
+
 fun loadRedeemCatalog(onResult: (List<RedeemItem>) -> Unit) {
-    val catalogRef = FirebaseDatabase.getInstance().reference.child("redeem_catalog")
-    catalogRef.get().addOnSuccessListener {
-        val catalog = it.children.mapNotNull { snapshot ->
-            snapshot.getValue(RedeemItem::class.java)
-        }
-        onResult(catalog)
-    }.addOnFailureListener {
-        onResult(emptyList())
-    }
-}
-fun addPoints(userId: String, pointsToAdd: Int, context: android.content.Context) {
-    val userRef = FirebaseDatabase.getInstance().reference.child("users").child(userId)
-    userRef.child("points").get().addOnSuccessListener { dataSnapshot ->
-        val currentPoints = dataSnapshot.getValue(Long::class.java) ?: 0L
-        val newPoints = currentPoints + pointsToAdd
-
-        userRef.child("points").setValue(newPoints)
-            .addOnFailureListener {
-                Toast.makeText(context, "Gagal update poin.", Toast.LENGTH_SHORT).show()
+    FirebaseDatabase.getInstance()
+        .reference
+        .child("redeem_catalog")
+        .get()
+        .addOnSuccessListener { snapshot ->
+            val catalog = snapshot.children.mapNotNull {
+                it.getValue(RedeemItem::class.java)
             }
-    }.addOnFailureListener {
-        Toast.makeText(context, "Gagal mengambil poin saat ini.", Toast.LENGTH_SHORT).show()
-    }
+            onResult(catalog)
+        }
+        .addOnFailureListener {
+            onResult(emptyList())
+        }
 }
-fun saveTransaction(userId: String, transaction: Transaction, context: android.content.Context) {
-    val transactionRef = FirebaseDatabase.getInstance().reference
-        .child("transactions").child(userId).push()
 
-    transactionRef.setValue(transaction)
+/* ===================== POINTS ===================== */
+
+fun addPoints(
+    userId: String,
+    pointsToAdd: Int,
+    context: Context
+) {
+    val userRef = FirebaseDatabase.getInstance()
+        .reference
+        .child("users")
+        .child(userId)
+
+    userRef.child("points")
+        .get()
+        .addOnSuccessListener { snapshot ->
+            val currentPoints = snapshot.getValue(Long::class.java) ?: 0L
+            val newPoints = currentPoints + pointsToAdd
+
+            userRef.child("points").setValue(newPoints)
+                .addOnFailureListener {
+                    Toast.makeText(context, "Gagal update poin.", Toast.LENGTH_SHORT).show()
+                }
+        }
+        .addOnFailureListener {
+            Toast.makeText(context, "Gagal mengambil poin.", Toast.LENGTH_SHORT).show()
+        }
+}
+
+/* ===================== TRANSACTIONS ===================== */
+
+fun saveTransaction(
+    userId: String,
+    transaction: Transaction,
+    context: Context
+) {
+    val transactionRef = FirebaseDatabase.getInstance()
+        .reference
+        .child("transactions")
+        .child(userId)
+        .push()
+
+    transactionRef
+        .setValue(transaction)
         .addOnSuccessListener {
-            Toast.makeText(context, "Transaksi berhasil disimpan!", Toast.LENGTH_SHORT).show()
             addPoints(userId, transaction.pointsEarned, context)
+            Toast.makeText(context, "Transaksi berhasil disimpan!", Toast.LENGTH_SHORT).show()
         }
         .addOnFailureListener {
             Toast.makeText(context, "Gagal menyimpan transaksi.", Toast.LENGTH_SHORT).show()
         }
 }
 
-fun loadTransactions(userId: String, onResult: (List<Transaction>) -> Unit) {
-    val transactionRef = FirebaseDatabase.getInstance().reference.child("transactions").child(userId)
+fun loadTransactions(
+    userId: String,
+    onResult: (List<Transaction>) -> Unit
+) {
+    val ref = FirebaseDatabase.getInstance()
+        .reference
+        .child("transactions")
+        .child(userId)
 
-    transactionRef.get().addOnSuccessListener { dataSnapshot ->
-        val transactions = dataSnapshot.children.mapNotNull { snapshot ->
-            snapshot.getValue(Transaction::class.java)
+    ref.addValueEventListener(object : com.google.firebase.database.ValueEventListener {
+        override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
+            val list = snapshot.children.mapNotNull {
+                it.getValue(Transaction::class.java)
+            }
+            onResult(list.reversed())
         }
-        onResult(transactions.reversed())
-    }.addOnFailureListener {
-        onResult(emptyList())
-    }
+
+        override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
+            onResult(emptyList())
+        }
+    })
 }
+
+/* ===================== LOGOUT ===================== */
 
 fun logoutUser(navController: NavController) {
     FirebaseAuth.getInstance().signOut()
     navController.navigate("login") {
-        popUpTo(0) {
-            inclusive = true
-        }
+        popUpTo(0) { inclusive = true }
         launchSingleTop = true
     }
 }
