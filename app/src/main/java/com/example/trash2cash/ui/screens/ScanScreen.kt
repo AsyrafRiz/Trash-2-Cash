@@ -12,7 +12,7 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +26,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.NavController
+import com.example.trash2cash.processTrashDeposit
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -165,7 +166,7 @@ fun ScanScreen(navController: NavController) {
                 title = { Text("Pindai Barcode", color = Color.White) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, null, tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -192,14 +193,15 @@ fun ScanScreen(navController: NavController) {
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView
                 ) {
-                    // === INI INTI SOLUSINYA ===
+                    // Unbind camera to stop scanning
                     ProcessCameraProvider
                         .getInstance(context.applicationContext)
                         .get()
                         .unbindAll()
 
-                    navController.navigate("redeem") {
-                        popUpTo("scan") { inclusive = true }
+                    // Handle the successful scan
+                    processTrashDeposit(context) {
+                        navController.popBackStack()
                     }
                 }
             }

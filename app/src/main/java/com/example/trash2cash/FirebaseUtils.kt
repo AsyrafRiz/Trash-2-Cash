@@ -1,79 +1,113 @@
 package com.example.trash2cash
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import java.util.Date
+import com.google.firebase.firestore.ServerTimestamp
 
-/* ===================== AUTH ===================== */
+// --- Data Class untuk Riwayat Scan ---
+data class ScanHistory(
+    val jenisSampah: String = "",
+    val amount: Long = 0,
+    @ServerTimestamp val timestamp: Date? = null
+)
 
-fun loginUser(
-    email: String,
-    password: String,
-    context: Context,
-    onSuccess: () -> Unit
-) {
-    FirebaseAuth.getInstance()
-        .signInWithEmailAndPassword(email, password)
+// --- Fungsi Utama untuk Memproses Deposit Sampah ---
+fun processTrashDeposit(context: Context, onComplete: () -> Unit) {
+    val garbageTypes = mapOf(
+        "Plastik" to 1000L,
+        "Kertas" to 500L,
+        "Logam" to 2000L,
+        "Kaca" to 1500L
+    )
+
+    val randomGarbage = garbageTypes.entries.random()
+    val cashAmount = randomGarbage.value
+    val trashType = randomGarbage.key
+
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
+    if (uid == null) {
+        Toast.makeText(context, "Error: Pengguna tidak ditemukan.", Toast.LENGTH_SHORT).show()
+        onComplete()
+        return
+    }
+
+    val db = Firebase.firestore
+    val userDocRef = db.collection("users").document(uid)
+    val historyDocRef = userDocRef.collection("history").document() // Dokumen baru di sub-koleksi
+
+    // Buat objek riwayat baru
+    val newHistory = ScanHistory(jenisSampah = trashType, amount = cashAmount)
+
+    // Gunakan WriteBatch untuk operasi atomik
+    db.runBatch { batch ->
+        // 1. Increment totalCash di dokumen user
+        batch.update(userDocRef, "totalCash", FieldValue.increment(cashAmount))
+        // 2. Tambahkan dokumen baru di sub-koleksi history
+        batch.set(historyDocRef, newHistory)
+    }.addOnSuccessListener {
+        val successMessage = "Selamat! Anda mendapatkan Rp$cashAmount untuk sampah $trashType."
+        Toast.makeText(context, successMessage, Toast.LENGTH_LONG).show()
+        onComplete()
+    }.addOnFailureListener { e ->
+        Toast.makeText(context, "Gagal memproses deposit: ${e.message}", Toast.LENGTH_SHORT).show()
+        Log.w("Firestore", "Error processing deposit", e)
+        onComplete()
+    }
+}
+
+/* ========================================================================= */
+/* ================== FUNGSI-FUNGSI LAMA ANDA DI BAWAH INI ================== */
+/* ========================================================================= */
+
+fun loginUser(email: String, password: String, context: Context, onSuccess: () -> Unit) {
+    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Toast.makeText(context, "Login Berhasil", Toast.LENGTH_SHORT).show()
                 onSuccess()
             } else {
-                Toast.makeText(
-                    context,
-                    "Login Gagal: ${task.exception?.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Login Gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
 }
 
-fun registerUser(
-    email: String,
-    password: String,
-    name: String,
-    context: Context,
-    onSuccess: () -> Unit
-) {
-    FirebaseAuth.getInstance()
-        .createUserWithEmailAndPassword(email, password)
+fun registerUser(email: String, password: String, name: String, context: Context, onSuccess: () -> Unit) {
+    FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
-                    saveUserData(userId, name, email, context, onSuccess)
+                    createUserProfile(userId, name) // Membuat profil di Firestore
+                    // Anda mungkin masih perlu saveUserData jika menggunakan Realtime DB juga
+                    // saveUserData(userId, name, email, context, onSuccess)
+                    onSuccess() // Langsung panggil onSuccess setelah profil dibuat
                 }
             } else {
-                Toast.makeText(
-                    context,
-                    "Registrasi Gagal: ${task.exception?.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(context, "Registrasi Gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
 }
 
-fun saveUserData(
-    userId: String,
-    name: String,
-    email: String,
-    context: Context,
-    onSuccess: () -> Unit
-) {
-    val user = User(
-        userId = userId,
-        name = name,
-        email = email,
-        points = 0L
+fun createUserProfile(uid: String, name: String?) {
+    val db = Firebase.firestore
+    val user = hashMapOf(
+        "name" to name,
+        "totalCash" to 0L // Menggunakan Long (0L) untuk konsistensi
     )
+    db.collection("users").document(uid).set(user)
+}
 
-    FirebaseDatabase.getInstance()
-        .reference
-        .child("users")
-        .child(userId)
-        .setValue(user)
+fun saveUserData(userId: String, name: String, email: String, context: Context, onSuccess: () -> Unit) {
+    val user = User(userId = userId, name = name, email = email, points = 0L)
+    FirebaseDatabase.getInstance().reference.child("users").child(userId).setValue(user)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 Toast.makeText(context, "User Data Saved", Toast.LENGTH_SHORT).show()
@@ -84,105 +118,66 @@ fun saveUserData(
         }
 }
 
-/* ===================== REDEEM ===================== */
-
 fun loadRedeemCatalog(onResult: (List<RedeemItem>) -> Unit) {
-    FirebaseDatabase.getInstance()
-        .reference
-        .child("redeem_catalog")
-        .get()
-        .addOnSuccessListener { snapshot ->
-            val catalog = snapshot.children.mapNotNull {
-                it.getValue(RedeemItem::class.java)
+    val catalogRef = FirebaseDatabase.getInstance().reference.child("redeem_catalog")
+    catalogRef.get().addOnSuccessListener {
+        val catalog = it.children.mapNotNull { snapshot ->
+            snapshot.getValue(RedeemItem::class.java)
+        }
+        onResult(catalog)
+    }.addOnFailureListener {
+        onResult(emptyList())
+    }
+}
+
+fun addPoints(userId: String, pointsToAdd: Int, context: android.content.Context) {
+    val userRef = FirebaseDatabase.getInstance().reference.child("users").child(userId)
+    userRef.child("points").get().addOnSuccessListener { dataSnapshot ->
+        val currentPoints = dataSnapshot.getValue(Long::class.java) ?: 0L
+        val newPoints = currentPoints + pointsToAdd
+
+        userRef.child("points").setValue(newPoints)
+            .addOnFailureListener {
+                Toast.makeText(context, "Gagal update poin.", Toast.LENGTH_SHORT).show()
             }
-            onResult(catalog)
-        }
-        .addOnFailureListener {
-            onResult(emptyList())
-        }
+    }.addOnFailureListener {
+        Toast.makeText(context, "Gagal mengambil poin saat ini.", Toast.LENGTH_SHORT).show()
+    }
 }
 
-/* ===================== POINTS ===================== */
+fun saveTransaction(userId: String, transaction: Transaction, context: android.content.Context) {
+    val transactionRef = FirebaseDatabase.getInstance().reference
+        .child("transactions").child(userId).push()
 
-fun addPoints(
-    userId: String,
-    pointsToAdd: Int,
-    context: Context
-) {
-    val userRef = FirebaseDatabase.getInstance()
-        .reference
-        .child("users")
-        .child(userId)
-
-    userRef.child("points")
-        .get()
-        .addOnSuccessListener { snapshot ->
-            val currentPoints = snapshot.getValue(Long::class.java) ?: 0L
-            val newPoints = currentPoints + pointsToAdd
-
-            userRef.child("points").setValue(newPoints)
-                .addOnFailureListener {
-                    Toast.makeText(context, "Gagal update poin.", Toast.LENGTH_SHORT).show()
-                }
-        }
-        .addOnFailureListener {
-            Toast.makeText(context, "Gagal mengambil poin.", Toast.LENGTH_SHORT).show()
-        }
-}
-
-/* ===================== TRANSACTIONS ===================== */
-
-fun saveTransaction(
-    userId: String,
-    transaction: Transaction,
-    context: Context
-) {
-    val transactionRef = FirebaseDatabase.getInstance()
-        .reference
-        .child("transactions")
-        .child(userId)
-        .push()
-
-    transactionRef
-        .setValue(transaction)
+    transactionRef.setValue(transaction)
         .addOnSuccessListener {
-            addPoints(userId, transaction.pointsEarned, context)
             Toast.makeText(context, "Transaksi berhasil disimpan!", Toast.LENGTH_SHORT).show()
+            addPoints(userId, transaction.pointsEarned, context)
         }
         .addOnFailureListener {
             Toast.makeText(context, "Gagal menyimpan transaksi.", Toast.LENGTH_SHORT).show()
         }
 }
 
-fun loadTransactions(
-    userId: String,
-    onResult: (List<Transaction>) -> Unit
-) {
-    val ref = FirebaseDatabase.getInstance()
-        .reference
-        .child("transactions")
-        .child(userId)
+fun loadTransactions(userId: String, onResult: (List<Transaction>) -> Unit) {
+    val transactionRef = FirebaseDatabase.getInstance().reference.child("transactions").child(userId)
 
-    ref.addValueEventListener(object : com.google.firebase.database.ValueEventListener {
-        override fun onDataChange(snapshot: com.google.firebase.database.DataSnapshot) {
-            val list = snapshot.children.mapNotNull {
-                it.getValue(Transaction::class.java)
-            }
-            onResult(list.reversed())
+    transactionRef.get().addOnSuccessListener { dataSnapshot ->
+        val transactions = dataSnapshot.children.mapNotNull { snapshot ->
+            snapshot.getValue(Transaction::class.java)
         }
-
-        override fun onCancelled(error: com.google.firebase.database.DatabaseError) {
-            onResult(emptyList())
-        }
-    })
+        onResult(transactions.reversed())
+    }.addOnFailureListener {
+        onResult(emptyList())
+    }
 }
-
-/* ===================== LOGOUT ===================== */
 
 fun logoutUser(navController: NavController) {
     FirebaseAuth.getInstance().signOut()
     navController.navigate("login") {
-        popUpTo(0) { inclusive = true }
+        popUpTo(0) {
+            inclusive = true
+        }
         launchSingleTop = true
     }
 }
