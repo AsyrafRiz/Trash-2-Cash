@@ -45,7 +45,7 @@ fun RowScope.MenuButton(
             Spacer(Modifier.height(6.dp))
             Text(
                 text = text,
-                maxLines = 1,                // ← PASTI 1 BARIS
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }

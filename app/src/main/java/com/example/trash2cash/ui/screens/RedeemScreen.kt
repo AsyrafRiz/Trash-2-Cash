@@ -21,9 +21,9 @@ import com.google.firebase.auth.FirebaseAuth
 fun RedeemScreen(navController: NavController) {
 
     val context = LocalContext.current
+
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-    // Gunakan Long untuk poin agar tidak overflow
     val wasteTypes = listOf(
         "Organik" to 1000L,
         "Plastik" to 2000L,
@@ -32,11 +32,13 @@ fun RedeemScreen(navController: NavController) {
     )
 
     var expanded by remember { mutableStateOf(false) }
+
     var selectedWaste by remember { mutableStateOf<Pair<String, Long>?>(null) }
+
     var quantity by remember { mutableStateOf("") }
+
     var quantityError by remember { mutableStateOf<String?>(null) }
 
-    // Hitung total poin menggunakan Long
     val totalPoints: Long = selectedWaste?.second?.times(quantity.toLongOrNull() ?: 0L) ?: 0L
 
     Scaffold(
@@ -97,7 +99,7 @@ fun RedeemScreen(navController: NavController) {
             TextField(
                 value = quantity,
                 onValueChange = { 
-                    quantity = it.filter { char -> char.isDigit() } // Hanya izinkan angka
+                    quantity = it.filter { char -> char.isDigit() }
                     quantityError = null 
                 },
                 label = { Text("Jumlah Sampah") },

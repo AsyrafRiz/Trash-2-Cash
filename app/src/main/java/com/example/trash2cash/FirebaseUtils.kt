@@ -12,14 +12,13 @@ import com.google.firebase.ktx.Firebase
 import java.util.Date
 import com.google.firebase.firestore.ServerTimestamp
 
-// --- Data Class untuk Riwayat Scan ---
+
 data class ScanHistory(
     val jenisSampah: String = "",
     val amount: Long = 0,
     @ServerTimestamp val timestamp: Date? = null
 )
 
-// --- Fungsi Utama untuk Memproses Deposit Sampah ---
 fun processTrashDeposit(context: Context, onComplete: () -> Unit) {
     val garbageTypes = mapOf(
         "Plastik" to 1000L,
@@ -41,16 +40,12 @@ fun processTrashDeposit(context: Context, onComplete: () -> Unit) {
 
     val db = Firebase.firestore
     val userDocRef = db.collection("users").document(uid)
-    val historyDocRef = userDocRef.collection("history").document() // Dokumen baru di sub-koleksi
+    val historyDocRef = userDocRef.collection("history").document()
 
-    // Buat objek riwayat baru
     val newHistory = ScanHistory(jenisSampah = trashType, amount = cashAmount)
 
-    // Gunakan WriteBatch untuk operasi atomik
     db.runBatch { batch ->
-        // 1. Increment totalCash di dokumen user
         batch.update(userDocRef, "totalCash", FieldValue.increment(cashAmount))
-        // 2. Tambahkan dokumen baru di sub-koleksi history
         batch.set(historyDocRef, newHistory)
     }.addOnSuccessListener {
         val successMessage = "Selamat! Anda mendapatkan Rp$cashAmount untuk sampah $trashType."
@@ -63,9 +58,6 @@ fun processTrashDeposit(context: Context, onComplete: () -> Unit) {
     }
 }
 
-/* ========================================================================= */
-/* ================== FUNGSI-FUNGSI LAMA ANDA DI BAWAH INI ================== */
-/* ========================================================================= */
 
 fun loginUser(email: String, password: String, context: Context, onSuccess: () -> Unit) {
     FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
@@ -85,10 +77,8 @@ fun registerUser(email: String, password: String, name: String, context: Context
             if (task.isSuccessful) {
                 val userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
-                    createUserProfile(userId, name) // Membuat profil di Firestore
-                    // Anda mungkin masih perlu saveUserData jika menggunakan Realtime DB juga
-                    // saveUserData(userId, name, email, context, onSuccess)
-                    onSuccess() // Langsung panggil onSuccess setelah profil dibuat
+                    createUserProfile(userId, name)
+                    onSuccess()
                 }
             } else {
                 Toast.makeText(context, "Registrasi Gagal: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
@@ -100,7 +90,7 @@ fun createUserProfile(uid: String, name: String?) {
     val db = Firebase.firestore
     val user = hashMapOf(
         "name" to name,
-        "totalCash" to 0L // Menggunakan Long (0L) untuk konsistensi
+        "totalCash" to 0L
     )
     db.collection("users").document(uid).set(user)
 }

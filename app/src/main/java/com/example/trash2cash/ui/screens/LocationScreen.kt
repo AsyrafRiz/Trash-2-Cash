@@ -41,7 +41,6 @@ data class SampahLocation(
 fun LocationScreen(navController: NavController) {
     val context = LocalContext.current
 
-    // Data lokasi statis
     val locations = remember {
         listOf(
             SampahLocation("Bank Sampah Dinoyo", -7.946111, 112.604028),
@@ -50,16 +49,13 @@ fun LocationScreen(navController: NavController) {
         )
     }
 
-    // State untuk menyimpan lokasi pengguna
     var userLocation by remember { mutableStateOf<GeoPoint?>(null) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // Launcher untuk meminta izin lokasi
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                // Izin diberikan, coba dapatkan lokasi
                     fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                         location?.let {
                             userLocation = GeoPoint(it.latitude, it.longitude)
@@ -69,12 +65,10 @@ fun LocationScreen(navController: NavController) {
         }
     )
 
-    // Minta izin saat Composable pertama kali ditampilkan
     LaunchedEffect(Unit) {
         permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-    // Konfigurasi awal OSMDroid
     Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
     Configuration.getInstance().userAgentValue = context.packageName
 
@@ -108,28 +102,23 @@ fun LocationScreen(navController: NavController) {
                     map.controller.setCenter(startPoint)
                 }
 
-                // Hapus overlay lama sebelum menambahkan yang baru
                 map.overlays.clear()
 
-                // Tambahkan marker untuk setiap bank sampah
                 locations.forEach { location ->
                     val marker = Marker(map).apply {
                         position = GeoPoint(location.latitude, location.longitude)
                         title = location.name
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        // Menggunakan ikon default (biru)
                     }
                     map.overlays.add(marker)
                 }
 
-                // Tambahkan marker untuk lokasi pengguna jika tersedia
                 userLocation?.let {
                     val userMarker = Marker(map).apply {
                         position = it
                         title = "Lokasi Anda"
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        
-                        // Mengubah warna ikon default menjadi merah
+
                         val userMarkerIcon = ContextCompat.getDrawable(context, org.osmdroid.library.R.drawable.marker_default)?.mutate()
                         userMarkerIcon?.setColorFilter(Color.Red.toArgb(), PorterDuff.Mode.SRC_IN)
                         icon = userMarkerIcon
@@ -137,7 +126,7 @@ fun LocationScreen(navController: NavController) {
                     map.overlays.add(userMarker)
                 }
 
-                map.invalidate() // Refresh peta untuk menampilkan marker
+                map.invalidate()
             }
         )
     }
